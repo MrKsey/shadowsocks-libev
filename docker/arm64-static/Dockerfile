@@ -158,7 +158,7 @@ RUN cd /tmp/repo \
        -DCMAKE_FIND_ROOT_PATH=${PREFIX} \
        -DCMAKE_REQUIRED_INCLUDES="${PREFIX}/include" \
        -DCMAKE_C_FLAGS="-O2 -g -I${PREFIX}/include -L${PREFIX}/lib" \
-       -DCMAKE_EXE_LINKER_FLAGS="-static -L${PREFIX}/lib" \
+       -DCMAKE_EXE_LINKER_FLAGS="-static -L${PREFIX}/lib -lm" \
        -DSODIUM_INCLUDE_DIR=${PREFIX}/include \
        -DSODIUM_LIBRARY=${PREFIX}/lib/libsodium.a \
        -DMBEDTLS_INCLUDE_DIR=${PREFIX}/include \
