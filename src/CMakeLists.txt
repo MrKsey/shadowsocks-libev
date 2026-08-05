@@ -109,8 +109,9 @@ find_library(LIBUDNS NAMES libcares.a libcares_static.a)
 find_library(LIBPCRE2 libpcre2-8.a)
 
 # Dependencies we need for static and shared
+# Note: 'm' must come after 'bloom' because bloom uses log() from libm.
+# In static linking, libraries are processed left-to-right.
 list(APPEND DEPS
-        m
         bloom
         ${LIBEV}
         ${LIBUDNS}
@@ -118,6 +119,7 @@ list(APPEND DEPS
         ${LIBSODIUM}
         ${LIBMBEDTLS}
         ${LIBMBEDCRYPTO}
+        m
         )
 
 if (MINGW)
