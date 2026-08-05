@@ -140,7 +140,8 @@ jobs:
           mkdir build && cd build
           cmake .. \
             -DCMAKE_C_COMPILER=${CC} \
-            -DCMAKE_AR=${AR} \
+            -DCMAKE_AR=`which ${AR}` \
+            -DCMAKE_RANLIB=`which ${RANLIB}` \
             -DCMAKE_INSTALL_PREFIX=${PREFIX} \
             -DCMAKE_C_FLAGS="${CFLAGS}" \
             -DBUILD_SHARED_LIBS=OFF \
