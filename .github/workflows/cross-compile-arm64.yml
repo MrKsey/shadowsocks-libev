@@ -46,6 +46,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             gcc-aarch64-linux-gnu \
             g++-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu \
             cmake make autoconf automake libtool pkg-config \
             curl xz-utils tar
           sudo mkdir -p ${PREFIX}/{lib,include}
@@ -88,11 +89,16 @@ jobs:
           mkdir build && cd build
           cmake .. \
             -DCMAKE_C_COMPILER=${CC} \
-            -DCMAKE_AR=${AR} \
+            -DCMAKE_CXX_COMPILER=${CXX} \
+            -DCMAKE_AR=`which ${AR}` \
+            -DCMAKE_RANLIB=`which ${RANLIB}` \
+            -DCMAKE_C_COMPILER_AR=`which ${AR}` \
+            -DCMAKE_CXX_COMPILER_AR=`which ${AR}` \
+            -DCMAKE_C_COMPILER_RANLIB=`which ${RANLIB}` \
+            -DCMAKE_CXX_COMPILER_RANLIB=`which ${RANLIB}` \
             -DCMAKE_INSTALL_PREFIX=${PREFIX} \
             -DCMAKE_C_FLAGS="${CFLAGS}" \
             -DENABLE_SHARED=OFF \
-            -DENABLE_STATIC=ON \
             -DENABLE_TESTING=OFF \
             -DENABLE_PROGRAMS=OFF \
             -DCMAKE_BUILD_TYPE=Release
@@ -110,7 +116,8 @@ jobs:
           mkdir build && cd build
           cmake .. \
             -DCMAKE_C_COMPILER=${CC} \
-            -DCMAKE_AR=${AR} \
+            -DCMAKE_AR=`which ${AR}` \
+            -DCMAKE_RANLIB=`which ${RANLIB}` \
             -DCMAKE_INSTALL_PREFIX=${PREFIX} \
             -DCMAKE_C_FLAGS="${CFLAGS}" \
             -DBUILD_SHARED_LIBS=OFF \
