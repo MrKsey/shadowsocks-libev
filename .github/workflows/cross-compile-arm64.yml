@@ -1,0 +1,223 @@
+# =============================================================================
+# Cross-compile shadowsocks-libev statically for Linux ARM64 (aarch64)
+# Produces fully static binaries: ss-server, ss-local, ss-tunnel, ss-redir,
+# ss-manager — all with zero runtime dependencies.
+# =============================================================================
+name: cross-compile-arm64
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:                           # manual trigger
+
+jobs:
+  build-arm64-static:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    env:
+      TARGET:   aarch64-linux-gnu
+      PREFIX:   /opt/aarch64
+      CC:       aarch64-linux-gnu-gcc
+      CXX:      aarch64-linux-gnu-g++
+      AR:       aarch64-linux-gnu-ar
+      RANLIB:   aarch64-linux-gnu-ranlib
+      STRIP:    aarch64-linux-gnu-strip
+      CFLAGS:   "-O2 -fPIC"
+      LDFLAGS:  "-L/opt/aarch64/lib"
+      MAKEFLAGS: "-j$(nproc)"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      # ------------------------------------------------------------------
+      # 1. Install cross-compiler
+      # ------------------------------------------------------------------
+      - name: Install cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-aarch64-linux-gnu \
+            g++-aarch64-linux-gnu \
+            cmake make autoconf automake libtool pkg-config \
+            curl xz-utils tar
+          sudo mkdir -p ${PREFIX}/{lib,include}
+
+      # ------------------------------------------------------------------
+      # 2. Build libev (static)
+      # ------------------------------------------------------------------
+      - name: Build libev (static)
+        run: |
+          curl -fsSL http://dist.schmorp.de/libev/libev-4.33.tar.gz -o /tmp/libev.tar.gz
+          tar xzf /tmp/libev.tar.gz -C /tmp
+          cd /tmp/libev-4.33
+          ./configure --host=${TARGET} --prefix=${PREFIX} \
+            --enable-static --disable-shared
+          make -j$(nproc)
+          sudo make install
+
+      # ------------------------------------------------------------------
+      # 3. Build libsodium (static)
+      # ------------------------------------------------------------------
+      - name: Build libsodium (static)
+        run: |
+          curl -fsSL https://github.com/jedisct1/libsodium/archive/refs/tags/1.0.19-RELEASE.tar.gz -o /tmp/libsodium.tar.gz
+          tar xzf /tmp/libsodium.tar.gz -C /tmp
+          cd /tmp/libsodium-1.0.19-RELEASE
+          ./autogen.sh
+          ./configure --host=${TARGET} --prefix=${PREFIX} \
+            --enable-static --disable-shared
+          make -j$(nproc)
+          sudo make install
+
+      # ------------------------------------------------------------------
+      # 4. Build mbedTLS (static)
+      # ------------------------------------------------------------------
+      - name: Build mbedTLS (static)
+        run: |
+          curl -fsSL https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/v3.5.2.tar.gz -o /tmp/mbedtls.tar.gz
+          tar xzf /tmp/mbedtls.tar.gz -C /tmp
+          cd /tmp/mbedtls-3.5.2
+          mkdir build && cd build
+          cmake .. \
+            -DCMAKE_C_COMPILER=${CC} \
+            -DCMAKE_AR=${AR} \
+            -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+            -DCMAKE_C_FLAGS="${CFLAGS}" \
+            -DENABLE_SHARED=OFF \
+            -DENABLE_STATIC=ON \
+            -DENABLE_TESTING=OFF \
+            -DENABLE_PROGRAMS=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc)
+          sudo make install
+
+      # ------------------------------------------------------------------
+      # 5. Build c-ares (static)
+      # ------------------------------------------------------------------
+      - name: Build c-ares (static)
+        run: |
+          curl -fsSL https://github.com/c-ares/c-ares/archive/refs/tags/cares-1_22_1.tar.gz -o /tmp/c-ares.tar.gz
+          tar xzf /tmp/c-ares.tar.gz -C /tmp
+          cd /tmp/c-ares-cares-1_22_1
+          mkdir build && cd build
+          cmake .. \
+            -DCMAKE_C_COMPILER=${CC} \
+            -DCMAKE_AR=${AR} \
+            -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+            -DCMAKE_C_FLAGS="${CFLAGS}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCARES_STATIC=ON \
+            -DCARES_SHARED=OFF \
+            -DCARES_BUILD_TESTS=OFF \
+            -DCARES_BUILD_TOOLS=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc)
+          sudo make install
+
+      # ------------------------------------------------------------------
+      # 6. Build PCRE2 (static)
+      # ------------------------------------------------------------------
+      - name: Build PCRE2 (static)
+        run: |
+          curl -fsSL https://github.com/PCRE2Project/pcre2/archive/refs/tags/pcre2-10.42.tar.gz -o /tmp/pcre2.tar.gz
+          tar xzf /tmp/pcre2.tar.gz -C /tmp
+          cd /tmp/pcre2-pcre2-10.42
+          mkdir build && cd build
+          cmake .. \
+            -DCMAKE_C_COMPILER=${CC} \
+            -DCMAKE_AR=${AR} \
+            -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+            -DCMAKE_C_FLAGS="${CFLAGS}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DPCRE2_BUILD_PCRE2GREP=OFF \
+            -DPCRE2_BUILD_TESTS=OFF \
+            -DPCRE2_SUPPORT_JIT=OFF \
+            -DPCRE2_BUILD_STATIC_LIB=ON \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc)
+          sudo make install
+
+      # ------------------------------------------------------------------
+      # 7. Build shadowsocks-libev (static, cross-compiled)
+      # ------------------------------------------------------------------
+      - name: Build shadowsocks-libev (static ARM64)
+        run: |
+          mkdir -p build && cd build
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=${GITHUB_WORKSPACE}/docker/arm64-static/toolchain.cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTING=OFF \
+            -DWITH_STATIC=ON \
+            -DWITH_EMBEDDED_SRC=ON \
+            -DCMAKE_FIND_ROOT_PATH=${PREFIX} \
+            -DCMAKE_REQUIRED_INCLUDES="${PREFIX}/include" \
+            -DCMAKE_C_FLAGS="-O2 -g -I${PREFIX}/include -L${PREFIX}/lib" \
+            -DCMAKE_EXE_LINKER_FLAGS="-static -L${PREFIX}/lib" \
+            -DSODIUM_INCLUDE_DIR=${PREFIX}/include \
+            -DSODIUM_LIBRARY=${PREFIX}/lib/libsodium.a \
+            -DMBEDTLS_INCLUDE_DIR=${PREFIX}/include \
+            -DMBEDTLS_CRYPTO_LIBRARY=${PREFIX}/lib/libmbedcrypto.a \
+            -DMBEDTLS_TLS_LIBRARY=${PREFIX}/lib/libmbedtls.a \
+            -DCARES_INCLUDE_DIR=${PREFIX}/include \
+            -DCARES_LIBRARY=${PREFIX}/lib/libcares.a \
+            -DPCRE2_INCLUDE_DIR=${PREFIX}/include \
+            -DPCRE2_LIBRARY=${PREFIX}/lib/libpcre2-8.a \
+            -DLIBSODIUM=${PREFIX}/lib/libsodium.a \
+            -DLIBMBEDTLS=${PREFIX}/lib/libmbedtls.a \
+            -DLIBMBEDCRYPTO=${PREFIX}/lib/libmbedcrypto.a \
+            -DLIBEV=${PREFIX}/lib/libev.a \
+            -DLIBUDNS=${PREFIX}/lib/libcares.a \
+            -DLIBPCRE2=${PREFIX}/lib/libpcre2-8.a
+          make -j$(nproc) ss-server ss-local ss-tunnel ss-redir ss-manager
+
+      # ------------------------------------------------------------------
+      # 8. Strip and verify
+      # ------------------------------------------------------------------
+      - name: Strip and verify binaries
+        run: |
+          cd build/bin
+          sudo ${STRIP} ss-server ss-local ss-tunnel ss-redir ss-manager
+          echo "=== Binary info ==="
+          file ss-server ss-local ss-tunnel ss-redir ss-manager
+          echo "=== Shared library dependencies (should be 'not a dynamic executable' or 'statically linked') ==="
+          for f in ss-server ss-local ss-tunnel ss-redir ss-manager; do
+            echo "--- $f ---"
+            readelf -d "$f" 2>/dev/null || ${TARGET}-readelf -d "$f" 2>/dev/null || echo "(no dynamic section — fully static)"
+            ldd "$f" 2>&1 || echo "(statically linked)"
+          done
+
+      # ------------------------------------------------------------------
+      # 9. Upload artifacts
+      # ------------------------------------------------------------------
+      - name: Upload ARM64 binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadowsocks-libev-arm64-static
+          path: build/bin/ss-*
+          if-no-files-found: error
+          retention-days: 90
+
+      # ------------------------------------------------------------------
+      # 10. Create GitHub release on tag push
+      # ------------------------------------------------------------------
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Package binaries
+          ARCHIVE="shadowsocks-libev-${GITHUB_REF_NAME}-arm64-static.tar.gz"
+          tar czf "${ARCHIVE}" -C build/bin ss-server ss-local ss-tunnel ss-redir ss-manager
+          # Create release with the archive attached
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes "Static ARM64 binaries for ${GITHUB_REF_NAME}" \
+            "${ARCHIVE}"
