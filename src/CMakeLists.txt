@@ -139,7 +139,6 @@ find_library(LIBPCRE2_SHARED pcre2-8)
 
 if (WITH_EMBEDDED_SRC)
 list(APPEND DEPS_SHARED
-        m
         bloom
         cork
         ipset
@@ -149,13 +148,13 @@ list(APPEND DEPS_SHARED
         ${LIBSODIUM_SHARED}
         ${LIBMBEDTLS_SHARED}
         ${LIBMBEDCRYPTO_SHARED}
+        m
         )
 else ()
 find_library(LIBBLOOM_SHARED bloom)
 find_library(LIBCORK_SHARED cork)
 find_library(LIBCORKIPSET_SHARED corkipset)
 list(APPEND DEPS_SHARED
-        m
         ${LIBBLOOM_SHARED}
         ${LIBCORK_SHARED}
         ${LIBCORKIPSET_SHARED}
@@ -165,6 +164,7 @@ list(APPEND DEPS_SHARED
         ${LIBSODIUM_SHARED}
         ${LIBMBEDTLS_SHARED}
         ${LIBMBEDCRYPTO_SHARED}
+        m
         )
 endif ()
 
@@ -227,7 +227,7 @@ target_include_directories(shadowsocks-libev PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(ss-server cork ipset ${DEPS} ${DEPS_CONNMARKTOS} ${DEPS_NFTABLES})
 target_link_libraries(ss-tunnel cork ${DEPS})
-target_link_libraries(ss-manager m bloom cork ${LIBEV} ${LIBUDNS})
+target_link_libraries(ss-manager bloom cork m ${LIBEV} ${LIBUDNS})
 target_link_libraries(ss-local cork ipset ${DEPS})
 target_link_libraries(ss-redir cork ipset ${DEPS})
 target_link_libraries(shadowsocks-libev cork ipset ${DEPS})
