@@ -39,7 +39,7 @@ jobs:
       - name: Add upstream remote
         run: |
           git remote add upstream https://github.com/shadowsocks/shadowsocks-libev.git
-          git fetch upstream --tags
+          git fetch upstream
 
       # -----------------------------------------------------------------
       # Find the latest stable (non-prerelease) upstream release tag
