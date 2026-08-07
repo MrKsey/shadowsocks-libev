@@ -18,6 +18,8 @@ Differences from the original:
 
 Download binaries from the [Releases page](https://github.com/MrKsey/shadowsocks-libev/releases).
 
+---
+
 **Русский**
 
 Это форк [shadowsocks/shadowsocks-libev](https://github.com/shadowsocks/shadowsocks-libev), добавляющий **полностью статические сборки** бинарников для Linux на **ARM64 (aarch64)** и **x86_64 (amd64)** через GitHub Actions.
