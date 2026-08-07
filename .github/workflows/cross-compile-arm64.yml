@@ -9,8 +9,16 @@ on:
   push:
     branches: [master]
     tags: ["v*"]
+    paths-ignore:
+      - "README.md"
+      - "README_pt_BR.md"
+      - "**.md"
   pull_request:
     branches: [master]
+    paths-ignore:
+      - "README.md"
+      - "README_pt_BR.md"
+      - "**.md"
   workflow_dispatch:                           # manual trigger
 
 jobs:

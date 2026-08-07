@@ -1,4 +1,36 @@
-# shadowsocks-libev
+# shadowsocks-libev (fork with static builds)
+
+[![Build ARM64](https://github.com/MrKsey/shadowsocks-libev/actions/workflows/cross-compile-arm64.yml/badge.svg)](https://github.com/MrKsey/shadowsocks-libev/actions/workflows/cross-compile-arm64.yml) [![Build x64](https://github.com/MrKsey/shadowsocks-libev/actions/workflows/build-x64-static.yml/badge.svg)](https://github.com/MrKsey/shadowsocks-libev/actions/workflows/build-x64-static.yml)
+
+---
+
+## About this fork / Об этом форке
+
+**English**
+
+This is a fork of [shadowsocks/shadowsocks-libev](https://github.com/shadowsocks/shadowsocks-libev) that adds **fully static binary builds** for Linux on **ARM64 (aarch64)** and **x86_64 (amd64)** via GitHub Actions.
+
+Differences from the original:
+- Automated static cross-compilation for ARM64 and x86_64 with zero runtime dependencies
+- All dependencies (libev, libsodium, mbedTLS, c-ares, PCRE2) are built from source and linked statically
+- GitHub Releases with ready-to-use stripped binaries: `ss-server`, `ss-local`, `ss-tunnel`, `ss-redir`, `ss-manager`
+- Automatic synchronization with the upstream repository — new upstream releases trigger builds and release publication automatically
+
+Download binaries from the [Releases page](https://github.com/MrKsey/shadowsocks-libev/releases).
+
+**Русский**
+
+Это форк [shadowsocks/shadowsocks-libev](https://github.com/shadowsocks/shadowsocks-libev), добавляющий **полностью статические сборки** бинарников для Linux на **ARM64 (aarch64)** и **x86_64 (amd64)** через GitHub Actions.
+
+Отличия от оригинала:
+- Автоматическая статическая кросс-компиляция для ARM64 и x86_64 без зависимостей времени выполнения
+- Все библиотеки (libev, libsodium, mbedTLS, c-ares, PCRE2) собираются из исходников и линкуются статически
+- GitHub Releases с готовыми к использованию бинарниками: `ss-server`, `ss-local`, `ss-tunnel`, `ss-redir`, `ss-manager`
+- Автоматическая синхронизация с оригинальным репозиторием — новые релизы оригинала автоматически запускают сборку и публикацию
+
+Скачать бинарники можно на странице [Releases](https://github.com/MrKsey/shadowsocks-libev/releases).
+
+---
 
 [![Build Status](https://travis-ci.com/shadowsocks/shadowsocks-libev.svg?branch=master)](https://travis-ci.com/shadowsocks/shadowsocks-libev) [![Snap Status](https://snapcraft.io/shadowsocks-libev/badge.svg)](https://snapcraft.io/shadowsocks-libev)
 
