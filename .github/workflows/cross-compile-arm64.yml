@@ -232,8 +232,9 @@ jobs:
           # Package binaries
           ARCHIVE="shadowsocks-libev-${GITHUB_REF_NAME}-arm64-static.tar.gz"
           tar czf "${ARCHIVE}" -C build/bin ss-server ss-local ss-tunnel ss-redir ss-manager
-          # Create release with the archive attached
+          # Create release if it doesn't exist, then upload the arm64 archive
           gh release create "${GITHUB_REF_NAME}" \
             --title "${GITHUB_REF_NAME}" \
             --notes "Static ARM64 binaries for ${GITHUB_REF_NAME}" \
-            "${ARCHIVE}"
+            "${ARCHIVE}" 2>/dev/null || \
+          gh release upload "${GITHUB_REF_NAME}" "${ARCHIVE}" --clobber

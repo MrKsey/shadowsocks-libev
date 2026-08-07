@@ -91,10 +91,10 @@ jobs:
             echo "::warning::Merge conflicts detected, attempting resolution..."
             # List conflicted files
             git diff --name-only --diff-filter=U
-            # For all conflicted files except our custom files, take upstream version
+            # For all conflicted files, keep our version of fork-specific files
             for f in $(git diff --name-only --diff-filter=U); do
               case "$f" in
-                .github/*|README.md|README_pt_BR.md|CLAUDE.md|docker/*)
+                .github/*|README.md|README_pt_BR.md|CLAUDE.md|docker/*|src/CMakeLists.txt)
                   echo "Keeping our version of: $f"
                   git checkout --ours "$f" 2>/dev/null || true
                   ;;
